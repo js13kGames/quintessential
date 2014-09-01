@@ -12,6 +12,30 @@
         <!-- endbuild -->
     </head>
     <body>
+        <div class="wrapper">
+            <div class="state state--start" id="start">
+                <h1>Quintessential</h1>
+                <p>All alchemists struggle to tame the elements in order to forge the fifth element: Quinta Essentia</p>
+                <a href="#levelselect">start</a>
+            </div>
+            <div class="state state--levelselect" id="levelselect">
+                <ul>
+                    <li><a href="#game" class="level" data-level="fire">fire</a></li>
+                    <li><a href="#game" class="level" data-level="water">water</a></li>
+                    <li><a href="#game" class="level" data-level="air">air</a></li>
+                    <li><a href="#game" class="level" data-level="earth">earth</a></li>
+                </ul>
+            </div>
+            <div class="state state--game" id="game">
+                <canvas id="maingame"></canvas>
+            </div>
+            <div class="state state--lose" id="lose">
+                
+            </div>
+            <div class="state state--win" id="win">
+                
+            </div>
+        </div>
 
         <!-- build:js scripts/main.js -->
         <script src="scripts/lib.js"></script>
