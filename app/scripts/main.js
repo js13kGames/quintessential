@@ -16,14 +16,33 @@ Quintessential.prototype = {
 		'win'
 	],
 	currentState: '',
-	levels: [
-		'fire',
-		'water',
-		'air',
-		'earth'
-	],
 	currentLevel: '',
-	levelsCompleted: [],
+	level: {
+		fire: {
+			axis: 'x',
+			color: '#ff0000',
+			action: 'pressed',
+			completed: false
+		},
+		water: {
+			axis: 'y',
+			color: '#0000ff',
+			action: 'pressed',
+			completed: false
+		},
+		air: {
+			axis: 'x',
+			color: '#ffaa00',
+			action: 'release',
+			completed: false
+		},
+		earth: {
+			axis: 'x',
+			color: '#339911',
+			action: 'release',
+			completed: false
+		}
+	},
 	canvas: '',
 	canvasElement: document.querySelector('#maingame'),
 	canvasWidth: 320,
@@ -33,12 +52,16 @@ Quintessential.prototype = {
 		x: 0,
 		y: 0,
 		width: 32,
-		height: 64,
-		speed: 32,
+		height: 32,
+		speed: 16,
 		spacePressed: false,
 	},
-	enemyNumber: 7,
-	enemies: {},
+	enemyStats: {
+		width: 32,
+		height: 32,
+		possiblePos: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+	},
+	enemies: [],
 
 /*
  * setup canvas,
@@ -62,10 +85,11 @@ Quintessential.prototype = {
 		var self = this;
 		// if no state is chosen
 		if (this.currentState === '') {
-			this.currentState = 'game';
-			window.location.hash = 'game';
+			this.currentState = 'start';
+			window.location.hash = 'start';
+			//this.currentLevel = 'fire';
 		}
-		this.currentLevel = 'fire';
+		//this.currentLevel = 'fire';
 		this.player.x = this.canvasWidth / 2 - this.player.width / 2;
 		this.player.y = this.canvasHeight / 2 - this.player.height / 2;
 		this.gameLoop();
@@ -79,7 +103,6 @@ Quintessential.prototype = {
 		this.gameLogic(); // check parameters for events and call other functions
 		//this.updatePanel(); // update HUB
 		this.draw(); // drawing
-		console.log(new Date());
 	},
 
 /*
@@ -94,53 +117,86 @@ Quintessential.prototype = {
  */
 	draw: function() {
 		this.clear();
-		// check game state
-		// call according draw function
-		if (this.currentState === 'game') {
-			switch(this.currentLevel) {
-				case 'fire':
-					this.drawFire();
-					break;
-				case 'water':
-					this.drawWater();
-					break;
-				case 'air':
-					this.drawAir();
-					break;
-				case 'earth':
-					this.drawEarth();
-					break;
-			}
-		}
+
+		this.drawElement();
 		this.drawPlayer();
 	},
-	drawFire: function() {
-		console.log('drawing fire stage');
-		this.drawElement();
-	},
-	drawWater: function() {
-		console.log('drawing water stage');
-	},
-	drawAir: function() {
-		console.log('drawing air stage');
-	},
-	drawEarth: function() {
-		console.log('drawing earth stage');
-	},
+
 	drawPlayer: function() {
 		this.canvas.strokeStyle = '#000000';
 		this.canvas.fillStyle = '#000000';
-		// draw outline
 		this.canvas.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
 	},
 	drawElement: function() {
+		var self = this;
+		var level = self.currentLevel;
+		// this.canvas.strokeStyle = this.level[level]['color'];
+		// this.canvas.fillStyle = this.level[level]['color'];
 		this.canvas.strokeStyle = '#ff0000';
 		this.canvas.fillStyle = '#ff0000';
-		// draw outline
-		this.canvas.fillRect(40, 40, 32, 32);
+		// this.canvas.fillRect(40, 40, this.enemyStats.width, this.enemyStats.height);
+		for (var i = 0; i < this.enemies.length; i++) {
+			if (this.enemies[i][0] === false) {
+
+				// say where elements start
+				this.enemies[i].push(this.pickRandom([10, 310]));
+				// and save it for laters
+				if (this.enemies[i][2] === 10) {
+					this.enemies[i].push('pos');
+				} else {
+					this.enemies[i].push('neg');
+				}
+
+				if (this.level[level]['axis'] === 'x') {
+					this.canvas.fillRect(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.enemyStats.height);
+				} else if (this.level[level]['axis'] === 'y') {
+					this.canvas.fillRect(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.enemyStats.height);
+				}
+				this.enemies[i][0] = true;
+			} else {
+
+				// check with direction to go
+				if (this.enemies[i][3] === 'pos' ) {
+					this.enemies[i][2] = this.enemies[i][2] + 1;
+				} else {
+					this.enemies[i][2] = this.enemies[i][2] - 1;
+				}
+				
+
+				if (this.level[level]['axis'] === 'x') {
+					this.canvas.fillRect(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.enemyStats.height);
+					
+					// almost! need to consider the ones that go the other way! smaller then 0
+					if (this.enemies[i][2] > this.canvasHeight + this.enemyStats.height) {
+						this.enemies[i][0] = false;
+						this.enemies[i].length = 2;
+						console.log(this.enemies[i]);
+					}
+				} else if (this.level[level]['axis'] === 'y') {
+					this.canvas.fillRect(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.enemyStats.height);
+					if (this.enemies[i][2] > this.canvasWidth + this.enemyStats.width) {
+						this.enemies[i][0] = false;
+						this.enemies[i].length = 2;
+						console.log(this.enemies[i]);
+					}
+				}
+			}
+		}
 	},
 	clear: function() {
 		this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+	},
+	populateEnemies: function() {
+
+		for (var i = 0; i < this.enemyStats.possiblePos.length; i++) {
+			this.enemies[i] = [];
+			this.enemies[i].push(false);
+			this.enemies[i].push(this.enemyStats.possiblePos[i]);
+		};
+		console.log(this.enemies);
+	},
+	pickRandom: function(array) {
+		return array[Math.floor(Math.random() * array.length)];
 	},
 
 /*
@@ -152,53 +208,22 @@ Quintessential.prototype = {
 	},
 
 /*
- * GET STATE helper function
- */
-	getState: function() {
-		return this.currentState;
-	},
-
-/*
- * SET STATE helper function
- */
-	setState: function(state) {
-		this.currentState = state;
-	},
-
-/*
- * SET STATE helper function
- */
-	isState: function(state) {
-		return this.currentState === state;
-	},
-/*
  * Change STATE helper function
  */
 	changeState: function() {
-		var self = this;
 		var fragment = window.location.hash;
-		console.log('hello');
-
 		// assign new state
 		if (fragment !== this.currentState) {
-			this.currentState = fragment;
-		}
-		if (this.currentState === 'game') {
-			
-			// this.rAFid = window.requestAnimationFrame(function() {
-			// 	self.gameLoop();
-			// });
-		} else {
-			console.log('Do something about '+ this.currentState);
+			this.currentState = fragment.substr(1);
 		}
 	},
 /*
  * Choose Level
  */
 	chooseLevel: function(event) {
-		var levelAttr = event.target.attributes['data-level'];
-		// @todo get level dynamic from link
-		this.currentLevel = 'fire';
+		this.currentLevel = event.originalTarget.dataset.level;
+		this.populateEnemies();
+		console.log(this.currentLevel);
 	},
 
 /*
@@ -206,24 +231,38 @@ Quintessential.prototype = {
  */
 	actions: function() {
 		var self = this;
-		// @todo add eventlistener to all elements
-		//var levelLinks = document.querySelectorAll('.level');
-		window.addEventListener('hashChange', this.changeState);
+
+		var levelLinks = document.querySelectorAll('.level');
+		for (var i = 0; i < levelLinks.length; i++) {
+			levelLinks[i].addEventListener('click', function(event) {
+				self.chooseLevel(event);
+			});
+		};
+
+		window.addEventListener('hashchange', this.changeState);
 
 		window.addEventListener('keydown', function(ev) {
 			var key = ev.keyCode;
 			// player controls
 			if (self.currentLevel === 'fire' || self.currentLevel === 'air') {
 				if (key === 38) { // up
-					self.player.y = self.player.y - (1 * self.player.speed);
+					if(self.player.y > 0) {
+						self.player.y = self.player.y - (1 * self.player.speed);
+					}
 				} else if (key === 40) { // down
-					self.player.y = self.player.y + (1 * self.player.speed);
+					if(self.player.y + self.player.height < self.canvasHeight) {
+						self.player.y = self.player.y + (1 * self.player.speed);
+					}
 				}
-			} else if (self.currentLevel === 'water' || 	self.currentLevel === 'earth') {
+			} else if (self.currentLevel === 'water' || self.currentLevel === 'earth') {
 				if (key === 39) { // right
-					self.player.x = self.player.x + (1 * self.player.speed);
+					if(self.player.x + self.player.width < self.canvasWidth) {
+						self.player.x = self.player.x + (1 * self.player.speed);
+					}
 				} else if (key === 37) { // left
-					self.player.x = self.player.x - (1 * self.player.speed);
+					if(self.player.x > 0) {
+						self.player.x = self.player.x - (1 * self.player.speed);
+					}
 				}
 			}
 			// collect element switch pt1
@@ -238,7 +277,6 @@ Quintessential.prototype = {
 				this.player.spacePressed = false;
 			}
 		});
-		document.querySelector('.level').addEventListener('click', this.chooseLevel);
 	}
 
 };
