@@ -10,10 +10,10 @@ Quintessential.prototype = {
 	height: 400,
 	gameStates: [
 		'start',
-		'levelSelect',
+		'levelselect',
 		'game',
-		'lose',
-		'win'
+		'win',
+		'winwin'
 	],
 	currentState: '',
 	currentLevel: '',
@@ -21,25 +21,25 @@ Quintessential.prototype = {
 		fire: {
 			axis: 'x',
 			color: '#ff0000',
-			action: 'pressed',
+			action: true,
 			completed: false
 		},
 		water: {
 			axis: 'y',
 			color: '#0000ff',
-			action: 'pressed',
+			action: true,
 			completed: false
 		},
 		air: {
 			axis: 'x',
 			color: '#ffaa00',
-			action: 'release',
+			action: false,
 			completed: false
 		},
 		earth: {
-			axis: 'x',
+			axis: 'y',
 			color: '#339911',
-			action: 'release',
+			action: false,
 			completed: false
 		}
 	},
@@ -59,9 +59,15 @@ Quintessential.prototype = {
 	enemyStats: {
 		width: 32,
 		height: 32,
-		possiblePos: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+		possiblePos: [1, 3, 5, 7, 9],
 	},
 	enemies: [],
+	radius: 0,
+	score: {
+		element: document.querySelector('#score'),
+		current: 0,
+		max: 5
+	},
 
 /*
  * setup canvas,
@@ -76,22 +82,18 @@ Quintessential.prototype = {
 		this.canvas = this.canvasElement.getContext('2d');
 		// start actual game
 		this.startGame();
+		this.radius = this.getBoundingCircleRadius();
 	},
 
 /*
  * assign first game state
  */
 	startGame: function() {
-		var self = this;
 		// if no state is chosen
 		if (this.currentState === '') {
 			this.currentState = 'start';
 			window.location.hash = 'start';
-			//this.currentLevel = 'fire';
 		}
-		//this.currentLevel = 'fire';
-		this.player.x = this.canvasWidth / 2 - this.player.width / 2;
-		this.player.y = this.canvasHeight / 2 - this.player.height / 2;
 		this.gameLoop();
 	},
 	gameLoop: function() {
@@ -100,21 +102,55 @@ Quintessential.prototype = {
 		this.rAFid = window.requestAnimationFrame(function() {
 			self.gameLoop();
 		});
-		this.gameLogic(); // check parameters for events and call other functions
-		//this.updatePanel(); // update HUB
+		this.updatePanel(); // update HUB
 		this.draw(); // drawing
+		this.winLevel();
+	},
+	winLevel: function() {
+		var self = this;
+		var level = self.currentLevel;
+		var winwin = true;
+
+		if (this.score.current === this.score.max) {
+			this.level[level].completed = true;
+			this.score.current = 0;
+			document.querySelector('#what-you-won').innerHTML = this.currentLevel;
+			window.location.hash = 'win';
+		}
+
+		for (var prob in this.level) {
+			if (this.level[prob].completed === false) {
+				winwin = false;
+			}
+		}
+		if (winwin === true) {
+			window.location.hash = 'winwin';
+		}
+	},
+	getBoundingCircleRadius: function() {
+		// actually very bad
+		// only works because player and elements have same width and height
+		return Math.sqrt(((this.enemyStats.width/2 * this.enemyStats.width/2) + (this.enemyStats.height/2 * this.enemyStats.height/2)));
+	},
+	circlesIntersect: function(c1X,c1Y,c1Radius, c2X, c2Y, c2Radius) {
+		var distanceX = c2X - c1X + 13;
+		var distanceY = c2Y - c1Y + 13;
+		var magnitude = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+		return magnitude < c1Radius + c2Radius;
 	},
 
-/*
- * THiNK
- */
-	gameLogic: function() {
-
+	updatePanel: function() {
+		// var elem;
+		var count = 0;
+		for (var i = 0; i < this.score.current; i++) {
+			// elem = document.createElement('i');
+			// this.score.element.appendHtml(elem);
+			count = count +1;
+		}
+		this.score.element.innerHTML = count;
 	},
 
-/*
- * DRAW
- */
 	draw: function() {
 		this.clear();
 
@@ -130,29 +166,34 @@ Quintessential.prototype = {
 	drawElement: function() {
 		var self = this;
 		var level = self.currentLevel;
-		// this.canvas.strokeStyle = this.level[level]['color'];
-		// this.canvas.fillStyle = this.level[level]['color'];
-		this.canvas.strokeStyle = '#ff0000';
-		this.canvas.fillStyle = '#ff0000';
-		// this.canvas.fillRect(40, 40, this.enemyStats.width, this.enemyStats.height);
+		var randomFactor;
+		var intersect;
+		this.canvas.strokeStyle = this.level[level].color;
+		this.canvas.fillStyle = this.level[level].color;
 		for (var i = 0; i < this.enemies.length; i++) {
+			/*
+			 * element spawning
+			 */
+			randomFactor = this.pickRandom(this.enemyStats.possiblePos) * 10;
 			if (this.enemies[i][0] === false) {
-
 				// say where elements start
-				this.enemies[i].push(this.pickRandom([10, 310]));
+				this.enemies[i].push(this.pickRandom([ randomFactor - 100, randomFactor + this.canvasWidth]));
 				// and save it for laters
-				if (this.enemies[i][2] === 10) {
+				if (this.enemies[i][2] <= 100) {
 					this.enemies[i].push('pos');
 				} else {
 					this.enemies[i].push('neg');
 				}
 
-				if (this.level[level]['axis'] === 'x') {
+				if (this.level[level].axis === 'x') {
 					this.canvas.fillRect(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.enemyStats.height);
-				} else if (this.level[level]['axis'] === 'y') {
+				} else if (this.level[level].axis === 'y') {
 					this.canvas.fillRect(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.enemyStats.height);
 				}
 				this.enemies[i][0] = true;
+			/*
+			 * element moving
+			 */
 			} else {
 
 				// check with direction to go
@@ -163,21 +204,45 @@ Quintessential.prototype = {
 				}
 				
 
-				if (this.level[level]['axis'] === 'x') {
+				if (this.level[level].axis === 'x') {
 					this.canvas.fillRect(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.enemyStats.height);
-					
-					// almost! need to consider the ones that go the other way! smaller then 0
+					// check when elements leave canvas an respawn
 					if (this.enemies[i][2] > this.canvasHeight + this.enemyStats.height) {
 						this.enemies[i][0] = false;
 						this.enemies[i].length = 2;
-						console.log(this.enemies[i]);
+					} else if (this.enemies[i][2] < -64) {
+						this.enemies[i][0] = false;
+						this.enemies[i].length = 2;
 					}
-				} else if (this.level[level]['axis'] === 'y') {
+					/*
+					 * element collision
+					 */
+					intersect = this.circlesIntersect(this.enemies[i][2], this.enemies[i][1] * 32, this.radius, this.player.x, this.player.y, this.radius);
+					if (this.player.spacePressed === this.level[level].action && intersect === true ) {
+						this.score.current = this.score.current + 1;
+						this.enemies[i][0] = false;
+						this.enemies[i].length = 2;
+					}
+
+
+				} else if (this.level[level].axis === 'y') {
 					this.canvas.fillRect(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.enemyStats.height);
+					// check when elements leave canvas an respawn
 					if (this.enemies[i][2] > this.canvasWidth + this.enemyStats.width) {
 						this.enemies[i][0] = false;
 						this.enemies[i].length = 2;
-						console.log(this.enemies[i]);
+					} else if (this.enemies[i][2] < -64) {
+						this.enemies[i][0] = false;
+						this.enemies[i].length = 2;
+					}
+					/*
+					 * element collision
+					 */
+					intersect = this.circlesIntersect(this.enemies[i][1] * 32, this.enemies[i][2], this.radius, this.player.x, this.player.y, this.radius);
+					if (this.player.spacePressed === this.level[level].action && intersect === true ) {
+						this.score.current = this.score.current + 1;
+						this.enemies[i][0] = false;
+						this.enemies[i].length = 2;
 					}
 				}
 			}
@@ -192,24 +257,12 @@ Quintessential.prototype = {
 			this.enemies[i] = [];
 			this.enemies[i].push(false);
 			this.enemies[i].push(this.enemyStats.possiblePos[i]);
-		};
-		console.log(this.enemies);
+		}
 	},
 	pickRandom: function(array) {
 		return array[Math.floor(Math.random() * array.length)];
 	},
 
-/*
- * UPDATE
- */
-	update: function() {
-		// check game state
-		// call according update function(s)
-	},
-
-/*
- * Change STATE helper function
- */
 	changeState: function() {
 		var fragment = window.location.hash;
 		// assign new state
@@ -217,18 +270,16 @@ Quintessential.prototype = {
 			this.currentState = fragment.substr(1);
 		}
 	},
-/*
- * Choose Level
- */
+
 	chooseLevel: function(event) {
 		this.currentLevel = event.originalTarget.dataset.level;
+		var level = this.currentLevel;
 		this.populateEnemies();
-		console.log(this.currentLevel);
+		this.player.spacePressed = !this.level[level].action;
+		this.player.x = this.canvasWidth / 2 - this.player.width / 2;
+		this.player.y = this.canvasHeight / 2 - this.player.height / 2;
 	},
 
-/*
- * CONTROLS
- */
 	actions: function() {
 		var self = this;
 
@@ -237,7 +288,7 @@ Quintessential.prototype = {
 			levelLinks[i].addEventListener('click', function(event) {
 				self.chooseLevel(event);
 			});
-		};
+		}
 
 		window.addEventListener('hashchange', this.changeState);
 
@@ -267,14 +318,14 @@ Quintessential.prototype = {
 			}
 			// collect element switch pt1
 			if (key === 32) { // space
-				this.player.spacePressed = true;
+				self.player.spacePressed = true;
 			}
 		});
 		window.addEventListener('keyup', function(ev) {
 			var key = ev.keyCode;
 			// collect element switch pt2
 			if (key === 32) { // space
-				this.player.spacePressed = false;
+				self.player.spacePressed = false;
 			}
 		});
 	}

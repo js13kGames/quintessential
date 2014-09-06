@@ -26,3 +26,12 @@ body {
 canvas {
     border: maroon 1px solid;
 }
+
+.score {
+    i {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        background-color: pink;
+    }
+}
