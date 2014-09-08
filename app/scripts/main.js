@@ -126,6 +126,8 @@ Quintessential.prototype = {
 		for (var prob in this.level) {
 			if (this.level[prob].completed === false) {
 				winwin = false;
+			} else {
+				document.querySelector('.level--'+ this.currentLevel).classList.add('is-done');
 			}
 		}
 		if (winwin === true) {
