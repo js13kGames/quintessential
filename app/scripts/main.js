@@ -55,6 +55,8 @@ Quintessential.prototype = {
 		height: 32,
 		speed: 16,
 		spacePressed: false,
+		image: {},
+		radius: 0
 	},
 	enemyStats: {
 		width: 32,
@@ -83,6 +85,9 @@ Quintessential.prototype = {
 		// start actual game
 		this.startGame();
 		this.radius = this.getBoundingCircleRadius();
+		this.player.radius = this.getBoundingCircleRadiusPlayer();
+		this.player.image = new Image();
+		this.player.image.src = '/images/alchemist.png';
 	},
 
 /*
@@ -132,6 +137,9 @@ Quintessential.prototype = {
 		// only works because player and elements have same width and height
 		return Math.sqrt(((this.enemyStats.width/2 * this.enemyStats.width/2) + (this.enemyStats.height/2 * this.enemyStats.height/2)));
 	},
+	getBoundingCircleRadiusPlayer: function() {
+		return Math.sqrt(((this.player.width/3 * this.player.width/3) + (this.player.height/2 * this.player.height/2)));
+	},
 	circlesIntersect: function(c1X,c1Y,c1Radius, c2X, c2Y, c2Radius) {
 		var distanceX = c2X - c1X + 13;
 		var distanceY = c2Y - c1Y + 13;
@@ -159,17 +167,23 @@ Quintessential.prototype = {
 	},
 
 	drawPlayer: function() {
-		this.canvas.strokeStyle = '#000000';
-		this.canvas.fillStyle = '#000000';
-		this.canvas.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+		if(!this.player.image.complete) {
+			this.canvas.strokeStyle = '#000000';
+			this.canvas.fillStyle = '#000000';
+			this.canvas.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+		} else {
+			this.canvas.drawImage(this.player.image, this.player.x, this.player.y);
+		}
 	},
 	drawElement: function() {
 		var self = this;
-		var level = self.currentLevel;
+		var level = this.currentLevel;
 		var randomFactor;
 		var intersect;
-		this.canvas.strokeStyle = this.level[level].color;
-		this.canvas.fillStyle = this.level[level].color;
+		if (level !== '') {
+			this.canvas.strokeStyle = this.level[level].color;
+			this.canvas.fillStyle = this.level[level].color;
+		}
 		for (var i = 0; i < this.enemies.length; i++) {
 			/*
 			 * element spawning
