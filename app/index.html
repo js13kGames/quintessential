@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="styles/main.css">
         <!-- endbuild -->
     </head>
-    <body>
+    <body class="">
         <div class="wrapper">
             <div class="state state--start" id="start">
                 <h1>Quintessential</h1>
@@ -21,10 +21,10 @@
             <div class="state state--levelselect" id="levelselect">
                 <h2>Choose an Element</h2>
                 <ul>
-                    <li><a href="#game" class="level level--fire is-done" data-level="fire">fire</a></li>
+                    <li><a href="#game" class="level level--fire" data-level="fire">fire</a></li>
                     <li><a href="#game" class="level level--water" data-level="water">water</a></li>
                     <li><a href="#game" class="level level--air" data-level="air">air</a></li>
-                    <li><a href="#game" class="level level--earth is-done" data-level="earth">earth</a></li>
+                    <li><a href="#game" class="level level--earth" data-level="earth">earth</a></li>
                 </ul>
             </div>
             <div class="state state--game" id="game">
@@ -32,12 +32,19 @@
                 <div id="score" class="score"></div>
             </div>
             <div class="state state--win" id="win">
-                <p>you mastered <span id="what-you-won"></span></p>
+                <h2>You tamed <span id="what-you-won" class="cap"></span></h2>
                 <p><a href="#levelselect">go on</a></p>
             </div>
             <div class="state state--winwin" id="winwin">
-                <h1>The end</h1>
+                <ul>
+                    <li><a href="#game" class="level level--fire" data-level="fire"></a></li>
+                    <li><a href="#game" class="level level--water" data-level="water"></a></li>
+                    <li><a href="#game" class="level level--air" data-level="air"></a></li>
+                    <li><a href="#game" class="level level--earth" data-level="earth"></a></li>
+                </ul>
+                <div class="quinta"></div>
             </div>
+            <div class="state state--end" id="end"></div>
         </div>
 
         <!-- build:js scripts/main.js -->

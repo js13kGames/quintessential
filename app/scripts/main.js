@@ -8,38 +8,31 @@ Quintessential.prototype = {
 
 	width: 400,
 	height: 400,
-	gameStates: [
-		'start',
-		'levelselect',
-		'game',
-		'win',
-		'winwin'
-	],
 	currentState: '',
 	currentLevel: '',
 	level: {
 		fire: {
 			axis: 'x',
-			color: '#ff0000',
+			color: '#b15050',
 			action: true,
 			completed: false
 		},
 		water: {
 			axis: 'y',
-			color: '#0000ff',
+			color: '#5177cd',
 			action: true,
 			completed: false
 		},
 		air: {
 			axis: 'x',
-			color: '#ffaa00',
-			action: false,
+			color: '#f0e292',
+			action: true,
 			completed: false
 		},
 		earth: {
 			axis: 'y',
-			color: '#339911',
-			action: false,
+			color: '#3a7956',
+			action: true,
 			completed: false
 		}
 	},
@@ -59,8 +52,8 @@ Quintessential.prototype = {
 		radius: 0
 	},
 	enemyStats: {
-		width: 32,
-		height: 32,
+		width: 20,
+		height: 20,
 		possiblePos: [1, 3, 5, 7, 9],
 	},
 	enemies: [],
@@ -132,6 +125,7 @@ Quintessential.prototype = {
 		}
 		if (winwin === true) {
 			window.location.hash = 'winwin';
+			document.querySelector('body').classList.add('is-won');
 		}
 	},
 	getBoundingCircleRadius: function() {
@@ -152,13 +146,13 @@ Quintessential.prototype = {
 
 	updatePanel: function() {
 		// var elem;
-		var count = 0;
+		var count = 5;
 		for (var i = 0; i < this.score.current; i++) {
 			// elem = document.createElement('i');
 			// this.score.element.appendHtml(elem);
-			count = count +1;
+			count = count -1;
 		}
-		this.score.element.innerHTML = count;
+		this.score.element.innerHTML = count + ' to go';
 	},
 
 	draw: function() {
@@ -334,15 +328,30 @@ Quintessential.prototype = {
 			}
 			// collect element switch pt1
 			if (key === 32) { // space
-				self.player.spacePressed = true;
+				if (self.currentLevel === 'air' || self.currentLevel === 'earth') {
+					self.player.spacePressed = false;
+				} else {
+					self.player.spacePressed = true;
+				}
 			}
 		});
 		window.addEventListener('keyup', function(ev) {
 			var key = ev.keyCode;
 			// collect element switch pt2
 			if (key === 32) { // space
-				self.player.spacePressed = false;
+				if (self.currentLevel === 'air' || self.currentLevel === 'earth') {
+					self.player.spacePressed = true;
+				} else {
+					self.player.spacePressed = false;
+				}
 			}
+		});
+
+		document.querySelector('.quinta').addEventListener('animationend', function() {
+			document.querySelector('body').classList.toggle('is-won');
+			document.querySelector('body').classList.add('is-end');
+			self.currentState = 'end';
+			window.location.hash = 'end';
 		});
 	}
 
