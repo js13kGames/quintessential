@@ -14,25 +14,21 @@ Quintessential.prototype = {
 		fire: {
 			axis: 'x',
 			color: '#b15050',
-			action: true,
 			completed: false
 		},
 		water: {
 			axis: 'y',
 			color: '#5177cd',
-			action: true,
 			completed: false
 		},
 		air: {
 			axis: 'x',
 			color: '#f0e292',
-			action: true,
 			completed: false
 		},
 		earth: {
 			axis: 'y',
 			color: '#3a7956',
-			action: true,
 			completed: false
 		}
 	},
@@ -52,8 +48,8 @@ Quintessential.prototype = {
 		radius: 0
 	},
 	enemyStats: {
-		width: 20,
-		height: 20,
+		width: 16,
+		height: 16,
 		possiblePos: [1, 3, 5, 7, 9],
 	},
 	enemies: [],
@@ -63,11 +59,12 @@ Quintessential.prototype = {
 		current: 0,
 		max: 5
 	},
+	sounds: {
+		select: {},
+		noHit: {},
+		hit: {}
+	},
 
-/*
- * setup canvas,
- * start actual game
- */
 	init: function() {
 		console.log('play');
 		this.actions();
@@ -75,17 +72,24 @@ Quintessential.prototype = {
 		this.canvasElement.width = this.canvasWidth;
 		this.canvasElement.height = this.canvasHeight;
 		this.canvas = this.canvasElement.getContext('2d');
-		// start actual game
-		this.startGame();
+		this.canvas.fillCircle = function(x, y, radius, fillColor) {
+			this.fillStyle = fillColor;
+			this.beginPath();
+			this.moveTo(x, y);
+			this.arc(x, y, radius, 0, Math.PI*2, false);
+			this.fill();
+		};
 		this.radius = this.getBoundingCircleRadius();
 		this.player.radius = this.getBoundingCircleRadiusPlayer();
 		this.player.image = new Image();
-		this.player.image.src = '/images/alchemist.png';
-	},
+		this.player.image.src = '../images/alchemist.png';
+		this.sounds.select = new Audio('../sounds/select.wav');
+		this.sounds.noHit = new Audio('../sounds/bep.wav');
+		this.sounds.hit = new Audio('../sounds/beeeep.wav');
 
-/*
- * assign first game state
- */
+		// start actual game
+		this.startGame();
+	},
 	startGame: function() {
 		// if no state is chosen
 		if (this.currentState === '') {
@@ -96,7 +100,6 @@ Quintessential.prototype = {
 	},
 	gameLoop: function() {
 		var self = this;
-		// for some reason this needs to wrapped to function...
 		this.rAFid = window.requestAnimationFrame(function() {
 			self.gameLoop();
 		});
@@ -104,6 +107,24 @@ Quintessential.prototype = {
 		this.draw(); // drawing
 		this.winLevel();
 	},
+
+	updatePanel: function() {
+		// var elem;
+		var count = 5;
+		for (var i = 0; i < this.score.current; i++) {
+			// elem = document.createElement('i');
+			// this.score.element.appendHtml(elem);
+			count = count -1;
+		}
+		this.score.element.innerHTML = count + ' to go';
+	},
+
+	draw: function() {
+		this.clear();
+		this.drawElement();
+		this.drawPlayer();
+	},
+
 	winLevel: function() {
 		var self = this;
 		var level = self.currentLevel;
@@ -128,38 +149,9 @@ Quintessential.prototype = {
 			document.querySelector('body').classList.add('is-won');
 		}
 	},
-	getBoundingCircleRadius: function() {
-		// actually very bad
-		// only works because player and elements have same width and height
-		return Math.sqrt(((this.enemyStats.width/2 * this.enemyStats.width/2) + (this.enemyStats.height/2 * this.enemyStats.height/2)));
-	},
-	getBoundingCircleRadiusPlayer: function() {
-		return Math.sqrt(((this.player.width/3 * this.player.width/3) + (this.player.height/2 * this.player.height/2)));
-	},
-	circlesIntersect: function(c1X,c1Y,c1Radius, c2X, c2Y, c2Radius) {
-		var distanceX = c2X - c1X + 13;
-		var distanceY = c2Y - c1Y + 13;
-		var magnitude = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
-		return magnitude < c1Radius + c2Radius;
-	},
-
-	updatePanel: function() {
-		// var elem;
-		var count = 5;
-		for (var i = 0; i < this.score.current; i++) {
-			// elem = document.createElement('i');
-			// this.score.element.appendHtml(elem);
-			count = count -1;
-		}
-		this.score.element.innerHTML = count + ' to go';
-	},
-
-	draw: function() {
-		this.clear();
-
-		this.drawElement();
-		this.drawPlayer();
+	clear: function() {
+		this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 	},
 
 	drawPlayer: function() {
@@ -171,8 +163,8 @@ Quintessential.prototype = {
 			this.canvas.drawImage(this.player.image, this.player.x, this.player.y);
 		}
 	},
+
 	drawElement: function() {
-		var self = this;
 		var level = this.currentLevel;
 		var randomFactor;
 		var intersect;
@@ -196,9 +188,9 @@ Quintessential.prototype = {
 				}
 
 				if (this.level[level].axis === 'x') {
-					this.canvas.fillRect(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.enemyStats.height);
+					this.canvas.fillCircle(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.canvas.fillStyle);
 				} else if (this.level[level].axis === 'y') {
-					this.canvas.fillRect(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.enemyStats.height);
+					this.canvas.fillCircle(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.canvas.fillStyle);
 				}
 				this.enemies[i][0] = true;
 			/*
@@ -215,7 +207,7 @@ Quintessential.prototype = {
 				
 
 				if (this.level[level].axis === 'x') {
-					this.canvas.fillRect(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.enemyStats.height);
+					this.canvas.fillCircle(this.enemies[i][2], this.enemies[i][1] * 32, this.enemyStats.width, this.canvas.fillStyle);
 					// check when elements leave canvas an respawn
 					if (this.enemies[i][2] > this.canvasHeight + this.enemyStats.height) {
 						this.enemies[i][0] = false;
@@ -228,15 +220,16 @@ Quintessential.prototype = {
 					 * element collision
 					 */
 					intersect = this.circlesIntersect(this.enemies[i][2], this.enemies[i][1] * 32, this.radius, this.player.x, this.player.y, this.radius);
-					if (this.player.spacePressed === this.level[level].action && intersect === true ) {
+					if (this.player.spacePressed === true && intersect === true ) {
 						this.score.current = this.score.current + 1;
 						this.enemies[i][0] = false;
 						this.enemies[i].length = 2;
+						this.sounds.hit.play();
 					}
 
 
 				} else if (this.level[level].axis === 'y') {
-					this.canvas.fillRect(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.enemyStats.height);
+					this.canvas.fillCircle(this.enemies[i][1] * 32, this.enemies[i][2], this.enemyStats.width, this.canvas.fillStyle);
 					// check when elements leave canvas an respawn
 					if (this.enemies[i][2] > this.canvasWidth + this.enemyStats.width) {
 						this.enemies[i][0] = false;
@@ -249,33 +242,20 @@ Quintessential.prototype = {
 					 * element collision
 					 */
 					intersect = this.circlesIntersect(this.enemies[i][1] * 32, this.enemies[i][2], this.radius, this.player.x, this.player.y, this.radius);
-					if (this.player.spacePressed === this.level[level].action && intersect === true ) {
+					if (this.player.spacePressed === true && intersect === true ) {
 						this.score.current = this.score.current + 1;
 						this.enemies[i][0] = false;
 						this.enemies[i].length = 2;
+						this.sounds.hit.play();
 					}
 				}
 			}
 		}
 	},
-	clear: function() {
-		this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-	},
-	populateEnemies: function() {
 
-		for (var i = 0; i < this.enemyStats.possiblePos.length; i++) {
-			this.enemies[i] = [];
-			this.enemies[i].push(false);
-			this.enemies[i].push(this.enemyStats.possiblePos[i]);
-		}
-	},
-	pickRandom: function(array) {
-		return array[Math.floor(Math.random() * array.length)];
-	},
 
 	changeState: function() {
 		var fragment = window.location.hash;
-		// assign new state
 		if (fragment !== this.currentState) {
 			this.currentState = fragment.substr(1);
 		}
@@ -283,11 +263,26 @@ Quintessential.prototype = {
 
 	chooseLevel: function(event) {
 		this.currentLevel = event.originalTarget.dataset.level;
-		var level = this.currentLevel;
+		var arrows = event.originalTarget.dataset.arrows;
+		var action = event.originalTarget.dataset.action;
+		//var level = this.currentLevel;
+		var what = document.createElement('p');
+		console.log(event.originalTarget);
+		what.innerHTML = 'Use the <strong>'+ arrows +'</strong> arrow keys to navigate<br> Press <strong>'+ action +'</strong> to tame the element.';
+		what.classList.add('how-to');
+		document.querySelector('body').appendChild(what);
 		this.populateEnemies();
-		this.player.spacePressed = !this.level[level].action;
 		this.player.x = this.canvasWidth / 2 - this.player.width / 2;
 		this.player.y = this.canvasHeight / 2 - this.player.height / 2;
+	},
+
+
+	populateEnemies: function() {
+		for (var i = 0; i < this.enemyStats.possiblePos.length; i++) {
+			this.enemies[i] = [];
+			this.enemies[i].push(false);
+			this.enemies[i].push(this.enemyStats.possiblePos[i]);
+		}
 	},
 
 	actions: function() {
@@ -326,33 +321,43 @@ Quintessential.prototype = {
 					}
 				}
 			}
-			// collect element switch pt1
-			if (key === 32) { // space
+			// collect element switch
+			if (key === 77) { // space
 				if (self.currentLevel === 'air' || self.currentLevel === 'earth') {
-					self.player.spacePressed = false;
-				} else {
+					self.sounds.noHit.play();
+					self.player.spacePressed = true;
+				}
+			} else if (key === 78) {
+				if (self.currentLevel === 'fire' || self.currentLevel === 'water') {
+					self.sounds.noHit.play();
 					self.player.spacePressed = true;
 				}
 			}
 		});
-		window.addEventListener('keyup', function(ev) {
-			var key = ev.keyCode;
-			// collect element switch pt2
-			if (key === 32) { // space
-				if (self.currentLevel === 'air' || self.currentLevel === 'earth') {
-					self.player.spacePressed = true;
-				} else {
-					self.player.spacePressed = false;
-				}
-			}
+		window.addEventListener('keyup', function() {
+			self.player.spacePressed = false;
 		});
 
 		document.querySelector('.quinta').addEventListener('animationend', function() {
 			document.querySelector('body').classList.toggle('is-won');
 			document.querySelector('body').classList.add('is-end');
-			self.currentState = 'end';
-			window.location.hash = 'end';
 		});
+	},
+	getBoundingCircleRadius: function() {
+		return Math.sqrt(((this.enemyStats.width/2 * this.enemyStats.width/2) + (this.enemyStats.height/2 * this.enemyStats.height/2)));
+	},
+	getBoundingCircleRadiusPlayer: function() {
+		return Math.sqrt(((this.player.width/2 * this.player.width/2) + (this.player.height/2 * this.player.height/2)));
+	},
+	circlesIntersect: function(c1X,c1Y,c1Radius, c2X, c2Y, c2Radius) {
+		var distanceX = c2X - c1X + 13;
+		var distanceY = c2Y - c1Y + 13;
+		var magnitude = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+		return magnitude < c1Radius + c2Radius;
+	},
+	pickRandom: function(array) {
+		return array[Math.floor(Math.random() * array.length)];
 	}
 
 };

@@ -16,15 +16,15 @@
             <div class="state state--start" id="start">
                 <h1>Quintessential</h1>
                 <p>All alchemists struggle to tame the elements in order to forge the fifth element: Quinta Essentia</p>
-                <a href="#levelselect">start</a>
+                <a href="#levelselect" class="start-btn">start</a>
             </div>
             <div class="state state--levelselect" id="levelselect">
                 <h2>Choose an Element</h2>
                 <ul>
-                    <li><a href="#game" class="level level--fire" data-level="fire">fire</a></li>
-                    <li><a href="#game" class="level level--water" data-level="water">water</a></li>
-                    <li><a href="#game" class="level level--air" data-level="air">air</a></li>
-                    <li><a href="#game" class="level level--earth" data-level="earth">earth</a></li>
+                    <li><a href="#game" class="level level--fire" data-level="fire" data-arrows="up and down" data-action="n">fire</a></li>
+                    <li><a href="#game" class="level level--water" data-level="water" data-arrows="left and right" data-action="n">water</a></li>
+                    <li><a href="#game" class="level level--air" data-level="air" data-level="air" data-arrows="up and down" data-action="m">air</a></li>
+                    <li><a href="#game" class="level level--earth" data-level="earth" data-level="earth" data-arrows="left and right" data-action="m">earth</a></li>
                 </ul>
             </div>
             <div class="state state--game" id="game">
@@ -37,10 +37,10 @@
             </div>
             <div class="state state--winwin" id="winwin">
                 <ul>
-                    <li><a href="#game" class="level level--fire" data-level="fire"></a></li>
-                    <li><a href="#game" class="level level--water" data-level="water"></a></li>
-                    <li><a href="#game" class="level level--air" data-level="air"></a></li>
-                    <li><a href="#game" class="level level--earth" data-level="earth"></a></li>
+                    <li><a href="#game" class="level level--fire" data-level="fire" ></a></li>
+                    <li><a href="#game" class="level level--water" data-level="water" ></a></li>
+                    <li><a href="#game" class="level level--air" ></a></li>
+                    <li><a href="#game" class="level level--earth" ></a></li>
                 </ul>
                 <div class="quinta"></div>
             </div>
